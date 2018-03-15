@@ -101,6 +101,7 @@ mod client;
 mod cmdline;
 mod commands;
 mod compiler;
+mod dist;
 mod jobserver;
 mod mock_command;
 mod protocol;
