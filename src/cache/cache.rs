@@ -49,9 +49,9 @@ use zip::write::FileOptions;
 use errors::*;
 
 //TODO: might need to put this somewhere more central
-const ORGANIZATION: &str = "Mozilla";
+pub const ORGANIZATION: &str = "Mozilla";
 const APP_NAME: &str = "sccache";
-const TEN_GIGS: u64 = 10 * 1024 * 1024 * 1024;
+pub const TEN_GIGS: u64 = 10 * 1024 * 1024 * 1024;
 
 /// Result of a cache lookup.
 pub enum Cache {
@@ -173,7 +173,7 @@ pub trait Storage {
     fn max_size(&self) -> Option<u64>;
 }
 
-fn parse_size(val: &str) -> Option<u64> {
+pub fn parse_size(val: &str) -> Option<u64> {
     let re = Regex::new(r"^(\d+)([KMGT])$").unwrap();
     re.captures(val)
         .and_then(|caps| {

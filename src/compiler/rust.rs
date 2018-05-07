@@ -633,6 +633,7 @@ impl<T> CompilerHasher<T> for RustHasher
             for d in compiler_shlibs_digests {
                 m.update(d.as_bytes());
             }
+            let weak_toolchain_key = m.clone().finish();
             // 3. The full commandline (self.arguments)
             // TODO: there will be full paths here, it would be nice to
             // normalize them so we can get cross-machine cache hits.
@@ -699,14 +700,15 @@ impl<T> CompilerHasher<T> for RustHasher
                 let toolchain_sysroot = sysroot.clone();
                 let toolchain_future = Box::new(future::lazy(move || {
                     toolchain_pool.spawn_fn(move || {
-                        let path = daemon_client.toolchain_cache(&mut move |f| {
+                        let archive_id = daemon_client.put_toolchain_cache(&weak_toolchain_key, &mut move |f| {
+                            info!("Packaging Rust compiler");
                             let mut builder = tar::Builder::new(f);
                             builder.append_dir_all(&toolchain_sysroot.strip_prefix("/").unwrap(), &toolchain_sysroot).unwrap();
                             builder.finish().unwrap()
                         });
                         future::ok(dist::Toolchain {
                             docker_img: "ubuntu:16.04".to_owned(),
-                            archive: path,
+                            archive_id,
                         })
                     })
                 }));
@@ -779,6 +781,7 @@ impl<T> Compilation<T> for RustCompilation
                 inputs_archive,
                 outputs,
                 toolchain,
+                toolchain_data: None,
             }
         )))
     }
