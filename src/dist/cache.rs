@@ -22,14 +22,14 @@ const APP_NAME: &str = "sccache-dist";
 
 pub enum CacheOwner {
     Client,
-    Worker,
+    Server,
 }
 
 impl CacheOwner {
     fn to_dirname(&self) -> &str {
         match *self {
             CacheOwner::Client => "client",
-            CacheOwner::Worker => "worker",
+            CacheOwner::Server => "server",
         }
     }
 }
