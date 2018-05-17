@@ -25,6 +25,7 @@ use compiler::{
     MissType,
     get_compiler_info,
 };
+use dist;
 use filetime::FileTime;
 use futures::future;
 use futures::sync::mpsc;
@@ -305,6 +306,9 @@ struct SccacheService<C: CommandCreatorSync> {
     /// Server statistics.
     stats: Rc<RefCell<ServerStats>>,
 
+    /// Distributed sccache client
+    daemon_client: Arc<dist::SccacheDaemonClient>,
+
     /// Cache storage.
     storage: Arc<Storage>,
 
@@ -405,6 +409,7 @@ impl<C> SccacheService<C>
                info: ActiveInfo) -> SccacheService<C> {
         SccacheService {
             stats: Rc::new(RefCell::new(ServerStats::default())),
+            daemon_client: Arc::new(dist::SccacheDaemonClient::new()),
             storage: storage,
             compilers: Rc::new(RefCell::new(HashMap::new())),
             pool: pool,
@@ -550,7 +555,8 @@ impl<C> SccacheService<C>
         };
         let out_pretty = hasher.output_pretty().into_owned();
         let color_mode = hasher.color_mode();
-        let result = hasher.get_cached_or_compile(self.creator.clone(),
+        let result = hasher.get_cached_or_compile(self.daemon_client.clone(),
+                                                  self.creator.clone(),
                                                   self.storage.clone(),
                                                   arguments,
                                                   cwd,
